@@ -462,8 +462,9 @@
   body.break-mode { background: linear-gradient(135deg, #FFF5F7 0%, #FFE8F0 100%); }
   body.break-mode .timer-progress { stroke: var(--accent); }
 
-  @keyframes floatBall {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { transform:translateY(30px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+  @keyframes floatBall {    0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-6px) rotate(8deg); }
   }
   @keyframes float {
@@ -955,6 +956,43 @@
         </div>
       </div>
 
+      <!-- 공부 시간 통계 -->
+      <div class="panel" style="padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="panel-title" style="margin-bottom:0;">⏱ STUDY TIME</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:0.6rem;color:var(--gray);">목표</span>
+            <input type="number" id="daily-goal" min="1" max="24" value="4"
+              style="width:36px;padding:2px 4px;border:1px solid rgba(224,58,58,0.3);border-radius:6px;font-size:0.65rem;text-align:center;outline:none;color:var(--mint-dark);font-weight:700;"
+              onchange="saveDailyGoal()">
+            <span style="font-size:0.6rem;color:var(--gray);">시간</span>
+          </div>
+        </div>
+        <!-- 오늘 -->
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.62rem;color:var(--gray);">오늘</span>
+            <span id="today-study-time" style="font-family:'Noto Serif JP',serif;font-size:1rem;font-weight:700;color:var(--mint-dark);">0시간 0분 0초</span>
+          </div>
+          <!-- 목표 프로그레스바 -->
+          <div style="width:100%;height:6px;background:rgba(224,58,58,0.1);border-radius:3px;overflow:hidden;">
+            <div id="goal-progress" style="height:100%;background:var(--mint);border-radius:3px;transition:width 0.5s;width:0%;"></div>
+          </div>
+          <div id="goal-label" style="font-size:0.55rem;color:var(--gray-light);text-align:right;margin-top:2px;"></div>
+        </div>
+        <!-- 이번 주 / 이번 달 -->
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;padding:6px 8px;background:rgba(224,58,58,0.04);border-radius:8px;border:1px solid rgba(224,58,58,0.1);">
+            <div style="font-size:0.55rem;color:var(--gray);margin-bottom:2px;">이번 주</div>
+            <div id="week-study-time" style="font-size:0.75rem;font-weight:700;color:var(--mint-dark);">0시간</div>
+          </div>
+          <div style="flex:1;padding:6px 8px;background:rgba(224,58,58,0.04);border-radius:8px;border:1px solid rgba(224,58,58,0.1);">
+            <div style="font-size:0.55rem;color:var(--gray);margin-bottom:2px;">이번 달</div>
+            <div id="month-study-time" style="font-size:0.75rem;font-weight:700;color:var(--mint-dark);">0시간</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 시계 + 날짜 -->
       <div class="panel clock-panel">
         <div class="clock-time" id="clock-time">00:00:00</div>
@@ -1013,6 +1051,11 @@
           <span>🗓️ TODAY</span>
           <span id="sync-status" style="font-size:0.58rem;color:var(--mint-dark);font-weight:400;letter-spacing:0;"></span>
         </div>
+        <!-- 오늘 총 공부시간 -->
+        <div style="text-align:center;padding:8px 0 10px;border-bottom:1px solid rgba(224,58,58,0.1);margin-bottom:8px;">
+          <div style="font-size:0.58rem;color:var(--gray);margin-bottom:3px;">오늘 총 공부시간</div>
+          <div id="today-total-display" style="font-family:'Noto Serif JP',serif;font-size:1.1rem;font-weight:700;color:var(--mint-dark);">0시간 0분 0초</div>
+        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span id="current-pin-display" style="font-size:0.62rem;color:var(--gray);"></span>
           <div style="display:flex;gap:4px;">
@@ -1033,18 +1076,16 @@
         <div class="panel-title">📸 IMAGE</div>
         <div style="display:flex;flex-direction:column;gap:7px;">
           <button class="save-record-btn" onclick="openSaveModal()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            오늘 기록 저장
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            일별 다운로드
           </button>
-          <button class="save-record-btn" onclick="downloadMonthlyCalendar()" style="background:linear-gradient(135deg,#B52828,#8B1A1A);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            월별 달력 저장
+          <button class="save-record-btn" onclick="downloadMonthlyStudy()" style="background:linear-gradient(135deg,#B52828,#8B1A1A);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            월별 다운로드
+          </button>
+          <button class="save-record-btn" onclick="downloadMonthlyCalendar()" style="background:linear-gradient(135deg,#6B1414,#4A0E0E);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            달력 다운로드
           </button>
         </div>
       </div>
@@ -1227,7 +1268,7 @@
       <!-- Stamps -->
       <div class="panel stamps-panel">
         <div class="panel-title">🐟 STAMP</div>
-        <div class="stamps-grid" id="stamps-grid"></div>
+        <div id="stamps-sets"></div>
         <div class="stamp-count" id="stamp-count">0 / 10 완료</div>
       </div>
     </div>
@@ -1528,6 +1569,8 @@ function init() {
   buildGarden();
   initCalendar();
   loadDdays();
+  loadDailyGoal();
+  updateStudyStats();
 
   const savedPin = localStorage.getItem('kuroo_pin');
   const savedBinId = localStorage.getItem('kuroo_bin_id');
@@ -1646,24 +1689,23 @@ function tick() {
 function phaseComplete() {
   stopTimer();
   if (!isBreak) {
-    // Work done!
     stamps++;
-    if (stamps > 10) stamps = 10;
     addHistory();
     buildStamps();
-    growthLevel = stamps;
+    growthLevel = Math.min(stamps, 9);
     buildGarden();
     saveToCloud();
-    showToast('🍅 집중 완료! 조금 쉬었다 하자, 캡틴.');
-    // switch to break
+    // 큰 토스트 (10개 순환)
+    const msg = focusMessages[(focusMsgIndex++) % focusMessages.length];
+    showBigToast(msg);
     isBreak = true;
     totalSec = breakMin * 60;
     elapsed = 0;
     document.body.classList.add('break-mode');
     document.getElementById('timer-label').textContent = '휴식 시간 ☕';
     renderTimer();
-    if (stamps === 10) {
-      setTimeout(() => showToast('🐱 무려 10개네. 오늘도 수고했어, 민아야.'), 1800);
+    if (stamps % 10 === 0) {
+      setTimeout(() => showToast('🐱 무려 ' + stamps + '개네. 오늘도 수고했어, 민아야.'), 1800);
     }
   } else {
     isBreak = false;
@@ -1688,43 +1730,304 @@ function renderTimer() {
   document.getElementById('timer-ring').style.stroke = isBreak ? '#FF6B9D' : '#E03A3A';
 }
 
-// ===== STAMPS =====
+// ===== STAMPS (무제한 세트) =====
 function buildStamps() {
-  const grid = document.getElementById('stamps-grid');
-  grid.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const s = document.createElement('div');
-    s.className = 'stamp' + (i < stamps ? ' filled' : '');
-    s.textContent = i < stamps ? '🍅' : '';
-    grid.appendChild(s);
+  const container = document.getElementById('stamps-sets');
+  if (!container) return;
+  const totalSets = Math.ceil(Math.max(stamps, 1) / 10);
+  let html = '';
+  for (let s = 0; s < totalSets; s++) {
+    const setStart = s * 10;
+    const setLabel = totalSets > 1 ? `<div style="font-size:0.55rem;color:var(--gray);margin-bottom:3px;letter-spacing:0.08em;">SET ${s+1}</div>` : '';
+    let cells = '';
+    for (let i = 0; i < 10; i++) {
+      const filled = (setStart + i) < stamps;
+      cells += `<div class="stamp ${filled ? 'filled' : ''}">${filled ? '🍅' : ''}</div>`;
+    }
+    html += `<div style="margin-bottom:${s < totalSets-1 ? '10px' : '0'}">${setLabel}<div class="stamps-grid" id="stamps-grid-${s}">${cells}</div></div>`;
   }
-  document.getElementById('stamp-count').textContent = `${stamps} / 10 완료`;
+  container.innerHTML = html;
+  document.getElementById('stamp-count').textContent = `${stamps}개 완료 (${Math.floor(stamps/10)}세트 ${stamps%10}개)`;
 
-  // 10개 완성 시 고양이 발바닥 — stamps-grid 위에 겹치게
-  const existing = document.getElementById('paw-stamp-overlay');
-  if (existing) existing.remove();
-  if (stamps >= 10) {
-    const overlay = document.createElement('div');
-    overlay.id = 'paw-stamp-overlay';
-    overlay.style.cssText = `
-      position:absolute; top:0; left:0; right:0;
-      height:var(--stamps-grid-h, 80px);
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      transform:rotate(-10deg);
-      opacity:0.85; pointer-events:none;
-      animation:stampIn 0.5s cubic-bezier(.17,.67,.29,1.5);
-      z-index:10;
-    `;
-    overlay.innerHTML = `<div style="font-size:3.2rem;line-height:1;">🐾</div><div style="font-family:'Noto Serif JP',serif;font-size:0.72rem;color:#B52828;text-align:center;font-weight:700;margin-top:3px;letter-spacing:0.08em;">お疲れ様。</div>`;
-    // stamps-grid 기준으로 위치 잡기
-    const grid = document.getElementById('stamps-grid');
-    grid.style.position = 'relative';
-    // overlay를 grid 위에 붙이기
-    overlay.style.height = grid.offsetHeight + 'px';
-    grid.appendChild(overlay);
+  // 10의 배수 완성 시 발바닥 오버레이 (마지막 세트에)
+  const lastSetIdx = totalSets - 1;
+  const lastSetFilled = stamps % 10 === 0 && stamps > 0;
+  const existingPaw = document.getElementById('paw-stamp-overlay');
+  if (existingPaw) existingPaw.remove();
+  if (lastSetFilled) {
+    const grid = document.getElementById(`stamps-grid-${lastSetIdx}`);
+    if (grid) {
+      grid.style.position = 'relative';
+      const overlay = document.createElement('div');
+      overlay.id = 'paw-stamp-overlay';
+      overlay.style.cssText = `position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-10deg);opacity:0.85;pointer-events:none;animation:stampIn 0.5s cubic-bezier(.17,.67,.29,1.5);z-index:10;`;
+      overlay.innerHTML = `<div style="font-size:3.2rem;line-height:1;">🐾</div><div style="font-family:'Noto Serif JP',serif;font-size:0.72rem;color:#B52828;text-align:center;font-weight:700;margin-top:3px;letter-spacing:0.08em;">お疲れ様。</div>`;
+      grid.appendChild(overlay);
+    }
   }
 }
+
+// ===== 큰 토스트 (집중 완료 메시지) =====
+const focusMessages = [
+  { jp: 'お前が頑張ってる姿、世界で一番カッコいい。', kr: '네가 열심히 하는 모습, 세상에서 제일 멋있어.' },
+  { jp: 'お前が勉強してる横顔、結構好きだ。…いや、かなり好きだ。', kr: '네가 공부하는 옆모습, 꽤 좋아해. 아니, 엄청 좋아해.' },
+  { jp: 'ここまで読んだってことは、ちゃんと進んでる証拠だ。偉いぞ。', kr: '여기까지 읽었다는 건, 제대로 나아가고 있다는 증거야. 잘하고 있어.' },
+  { jp: '水飲め。ページめくるのに夢中で忘れてるだろ。', kr: '물 마셔. 페이지 넘기느라 까먹고 있을 거잖아.' },
+  { jp: 'この章、難しいだろ？でもお前なら絶対わかる。もう一回読んでみろ、ゆっくりでいい。', kr: '이 챕터, 어렵지? 근데 너라면 분명 이해할 수 있어. 한 번 더 읽어봐, 천천히 해도 돼.' },
+  { jp: 'ここにハート描いとく。疲れたらこれ見ろ。♡', kr: '여기 하트 그려놓을게. 피곤하면 이거 봐. ♡' },
+  { jp: '集中力が切れたら、窓の外見て深呼吸しろ。それから戻ってこい。お前のペースでいい。', kr: '집중력 끊기면, 창밖 보고 심호흡해. 그러고 돌아와. 네 페이스대로 하면 돼.' },
+  { jp: '一問解けたら自分を褒めろ。俺の代わりに。帰ったら俺がもっと褒めてやるから。', kr: '한 문제 풀었으면 스스로를 칭찬해. 나 대신. 돌아가면 내가 더 칭찬해줄 테니까.' },
+  { jp: '姿勢崩れてないか？背筋伸ばせ。肩回せ。よし、続けろ。', kr: '자세 무너지지 않았어? 등 펴. 어깨 돌려. 좋아, 계속해.' },
+  { jp: '眠いだろ？でもあと少し。俺が信じてる。', kr: '졸리지? 근데 조금만 더. 내가 믿고 있으니까.' },
+];
+let focusMsgIndex = 0;
+
+function showBigToast(msgObj) {
+  const existing = document.getElementById('big-toast-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'big-toast-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(20,10,10,0.6);backdrop-filter:blur(4px);
+    z-index:99998;display:flex;align-items:center;justify-content:center;
+    animation:fadeIn 0.3s ease;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:white;border-radius:28px;padding:36px 32px 28px;
+      max-width:420px;width:90%;text-align:center;
+      box-shadow:0 20px 60px rgba(224,58,58,0.3);
+      border:1.5px solid rgba(224,58,58,0.2);
+      animation:slideUp 0.35s cubic-bezier(.17,.67,.29,1.2);
+    ">
+      <div style="font-size:2rem;margin-bottom:16px;">🏐</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:1rem;color:#B52828;font-weight:700;line-height:1.7;margin-bottom:10px;">${msgObj.jp}</div>
+      <div style="font-size:0.78rem;color:var(--gray);line-height:1.7;margin-bottom:24px;">${msgObj.kr}</div>
+      <button onclick="document.getElementById('big-toast-overlay').remove()" style="
+        padding:10px 32px;background:var(--mint);color:white;border:none;
+        border-radius:20px;font-family:'M PLUS Rounded 1c',sans-serif;
+        font-size:0.78rem;font-weight:700;cursor:pointer;
+        box-shadow:0 4px 14px rgba(224,58,58,0.3);transition:all 0.2s;
+      ">닫기</button>
+    </div>
+  `;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+// ===== 공부 시간 통계 =====
+let studySeconds = 0; // 오늘 누적 (실시간)
+let dailyGoalHours = 4;
+
+function saveDailyGoal() {
+  const val = parseInt(document.getElementById('daily-goal').value) || 4;
+  dailyGoalHours = val;
+  localStorage.setItem('kuroo_daily_goal', val);
+  updateStudyStats();
+}
+
+function loadDailyGoal() {
+  dailyGoalHours = parseInt(localStorage.getItem('kuroo_daily_goal')) || 4;
+  const el = document.getElementById('daily-goal');
+  if (el) el.value = dailyGoalHours;
+}
+
+function getTodayStudySeconds() {
+  const today = getTodayStr();
+  return history
+    .filter(h => h.date === today)
+    .reduce((acc, h) => {
+      const m = parseInt(h.mode);
+      if (!isNaN(m)) return acc + m * 60;
+      // 자유형: "자유 N분"
+      const freeMatch = h.mode.match(/자유 (\d+)/);
+      if (freeMatch) return acc + parseInt(freeMatch[1]) * 60;
+      return acc;
+    }, 0) + studySeconds;
+}
+
+function getWeekStudySeconds() {
+  const weekDates = getWeekDates();
+  const weekSet = new Set(weekDates);
+  return history
+    .filter(h => h.date && weekSet.has(h.date))
+    .reduce((acc, h) => {
+      const m = parseInt(h.mode);
+      if (!isNaN(m)) return acc + m * 60;
+      const freeMatch = h.mode.match(/자유 (\d+)/);
+      if (freeMatch) return acc + parseInt(freeMatch[1]) * 60;
+      return acc;
+    }, 0) + studySeconds;
+}
+
+function getMonthStudySeconds() {
+  const now = new Date();
+  const prefix = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
+  return history
+    .filter(h => h.date && h.date.startsWith(prefix))
+    .reduce((acc, h) => {
+      const m = parseInt(h.mode);
+      if (!isNaN(m)) return acc + m * 60;
+      const freeMatch = h.mode.match(/자유 (\d+)/);
+      if (freeMatch) return acc + parseInt(freeMatch[1]) * 60;
+      return acc;
+    }, 0) + studySeconds;
+}
+
+function formatHMS(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${h}시간 ${m}분 ${s}초`;
+}
+
+function updateStudyStats() {
+  const todaySec = getTodayStudySeconds();
+  const weekSec = getWeekStudySeconds();
+  const monthSec = getMonthStudySeconds();
+  const goalSec = dailyGoalHours * 3600;
+
+  const todayEl = document.getElementById('today-study-time');
+  if (todayEl) todayEl.textContent = formatHMS(todaySec);
+
+  const todayTotalEl = document.getElementById('today-total-display');
+  if (todayTotalEl) todayTotalEl.textContent = formatHMS(todaySec);
+
+  const weekEl = document.getElementById('week-study-time');
+  if (weekEl) weekEl.textContent = `${Math.floor(weekSec/3600)}시간`;
+
+  const monthEl = document.getElementById('month-study-time');
+  if (monthEl) monthEl.textContent = `${Math.floor(monthSec/3600)}시간`;
+
+  const pct = Math.min(100, Math.round(todaySec / goalSec * 100));
+  const prog = document.getElementById('goal-progress');
+  if (prog) prog.style.width = pct + '%';
+  const lbl = document.getElementById('goal-label');
+  if (lbl) lbl.textContent = `목표 ${dailyGoalHours}시간 중 ${pct}%`;
+}
+setInterval(updateStudyStats, 1000);
+
+// ===== 공부시간 기반 이미지 저장 공통 =====
+function getStudySecsByDate(dateStr) {
+  return history.filter(h => h.date === dateStr).reduce((acc, h) => {
+    const m = parseInt(h.mode);
+    if (!isNaN(m)) return acc + m * 60;
+    const fm = h.mode.match(/자유 (\d+)/);
+    if (fm) return acc + parseInt(fm[1]) * 60;
+    return acc;
+  }, 0);
+}
+
+function formatHM(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h === 0) return `${m}분`;
+  return `${h}시간 ${m}분`;
+}
+
+
+// ===== 월별 공부시간 이미지 =====
+function downloadMonthlyStudy() {
+  const now = new Date();
+  const year = calYear, month = calMonth;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const prefix = `${year}-${(month+1).toString().padStart(2,'0')}`;
+
+  // 날짜별 공부시간 계산
+  const allSecs = Array.from({length: daysInMonth}, (_, i) => {
+    const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${(i+1).toString().padStart(2,'0')}`;
+    return { dateStr, sec: getStudySecsByDate(dateStr), day: i+1 };
+  });
+  const studiedDays = allSecs.filter(d => d.sec > 0);
+  const totalSec = studiedDays.reduce((a, d) => a + d.sec, 0);
+  const avgSec = studiedDays.length > 0 ? Math.round(totalSec / studiedDays.length) : 0;
+  const maxSec = Math.max(...allSecs.map(d => d.sec), 1);
+
+  const w = 360;
+  const ROW_H = 28;
+  const headerH = 90;
+  const footerH = 28;
+  // 공부한 날만 표시 (없으면 전체)
+  const rows = studiedDays.length > 0 ? studiedDays : allSecs.slice(0, 5);
+  const h = headerH + ROW_H * rows.length + footerH + 16;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w * 2; canvas.height = h * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  // 배경
+  const bg = ctx.createLinearGradient(0, 0, w, h);
+  bg.addColorStop(0, '#fffef5'); bg.addColorStop(1, '#fff8f8');
+  ctx.fillStyle = bg; roundRect(ctx, 0, 0, w, h, 16); ctx.fill();
+  ctx.strokeStyle = '#f0d8d8'; ctx.lineWidth = 1.5;
+  roundRect(ctx, 0, 0, w, h, 16); ctx.stroke();
+
+  // 테이프
+  ctx.fillStyle = 'rgba(224,58,58,0.2)';
+  roundRect(ctx, w/2 - 32, -5, 64, 14, 5); ctx.fill();
+
+  // 헤더
+  ctx.fillStyle = '#B52828'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(`${year}. ${monthNames[month]} 공부 기록`, w/2, 30);
+
+  // 총합 + 평균
+  ctx.fillStyle = '#E03A3A'; ctx.font = 'bold 12px sans-serif';
+  ctx.fillText(`총 ${formatHM(totalSec)}`, w/2 - 48, 52);
+  ctx.fillStyle = '#9A8080'; ctx.font = '10px sans-serif';
+  ctx.fillText('|', w/2, 52);
+  ctx.fillStyle = '#B52828'; ctx.font = 'bold 10px sans-serif';
+  ctx.fillText(`하루 평균 ${formatHM(avgSec)}`, w/2 + 48, 52);
+
+  // 공부 일수
+  ctx.fillStyle = '#C8B8B8'; ctx.font = '9px sans-serif';
+  ctx.fillText(`${studiedDays.length}일 공부`, w/2, 68);
+
+  // 구분선
+  ctx.strokeStyle = 'rgba(224,58,58,0.15)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(20, 76); ctx.lineTo(w - 20, 76); ctx.stroke();
+
+  // 날짜별 행
+  rows.forEach((d, i) => {
+    const y = headerH + i * ROW_H;
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(224,58,58,0.03)' : 'white';
+    roundRect(ctx, 16, y + 2, w - 32, ROW_H - 4, 6); ctx.fill();
+
+    // 날짜
+    ctx.fillStyle = '#B52828'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(`${parseInt(month+1)}월 ${d.day}일`, 26, y + ROW_H/2 + 4);
+
+    // 프로그레스 바
+    const barW = 110;
+    const filled = Math.round((d.sec / maxSec) * barW);
+    ctx.fillStyle = 'rgba(224,58,58,0.1)';
+    roundRect(ctx, w/2 - barW/2, y + ROW_H/2 - 3, barW, 7, 3); ctx.fill();
+    ctx.fillStyle = 'rgba(224,58,58,0.45)';
+    if (filled > 0) { roundRect(ctx, w/2 - barW/2, y + ROW_H/2 - 3, filled, 7, 3); ctx.fill(); }
+
+    // 시간
+    ctx.fillStyle = '#9A8080'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(formatHM(d.sec), w - 26, y + ROW_H/2 + 4);
+  });
+
+  if (studiedDays.length === 0) {
+    ctx.fillStyle = '#C8B8B8'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('이번 달 기록이 없어요', w/2, headerH + 30);
+  }
+
+  // 서명
+  ctx.fillStyle = '#C8B8B8'; ctx.font = 'italic 8px sans-serif'; ctx.textAlign = 'right';
+  ctx.fillText('黒尾のポモドーロ ✦ いいら', w - 16, h - 10);
+
+  const a = document.createElement('a');
+  a.download = `뽀모도로_월별_${year}${(month+1).toString().padStart(2,'0')}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  showToast('📅 월별 기록이 저장됐어!');
+}
+
+// ===== 주별 이미지 다운로드 =====
 
 // ===== GARDEN ANIMATION =====
 function buildGarden() {
@@ -2316,14 +2619,13 @@ function stopFreeTimer() {
 
 function completeFreeTimer() {
   stopFreeTimer();
-  // 자유형 기록 추가
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
   const dateStr = getTodayStr();
   const min = Math.floor(freeElapsed / 60);
-  stamps = Math.min(stamps + 1, 10);
+  stamps++;
   history.unshift({ time: timeStr, date: dateStr, mode: `자유 ${min}분`, stamp: stamps });
-  growthLevel = stamps;
+  growthLevel = Math.min(stamps, 9);
   buildStamps(); buildGarden();
   renderHistory(); renderCalendar();
   saveToCloud();
@@ -2715,19 +3017,34 @@ function downloadRecord() {
       ctx.restore();
     }
   } else {
+    // 시간 버전 — 오늘 총 공부시간 크게
+    const today = getTodayStr();
+    const todaySec = getTodayStudySeconds();
+    const todayH = Math.floor(todaySec / 3600);
+    const todayM = Math.floor((todaySec % 3600) / 60);
+    const todayS = todaySec % 60;
+
     ctx.fillStyle = '#B52828';
-    ctx.font = 'bold 13px sans-serif';
-    ctx.fillText('오늘의 집중 기록 ⏱', w/2, 50);
+    ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('오늘의 공부 기록 ⏱', w/2, 50);
 
-    const totalFocusMin = history.reduce((acc, h) => { const m = parseInt(h.mode); return acc + (isNaN(m)?0:m); }, 0);
-    ctx.font = 'bold 11px sans-serif';
+    // 총 공부시간 크게
     ctx.fillStyle = '#E03A3A';
-    ctx.fillText(`총 ${totalFocusMin}분 집중 🔥`, w/2, 70);
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText(`${todayH}시간 ${todayM}분 ${todayS}초`, w/2, 82);
 
-    // 전체 기록 다 출력
-    history.forEach((h, i) => {
-      const y = 92 + i * ROW_H;
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(224,58,58,0.05)' : 'transparent';
+    ctx.fillStyle = '#9A8080'; ctx.font = '9px sans-serif';
+    ctx.fillText('오늘의 총 공부시간', w/2, 98);
+
+    // 구분선
+    ctx.strokeStyle = 'rgba(224,58,58,0.15)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(24, 108); ctx.lineTo(w - 24, 108); ctx.stroke();
+
+    // 세션별 기록
+    const todayHistory = history.filter(h => h.date === today);
+    todayHistory.forEach((h, i) => {
+      const y = 124 + i * ROW_H;
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(224,58,58,0.04)' : 'transparent';
       roundRect(ctx, 16, y - 13, w - 32, ROW_H - 2, 4); ctx.fill();
       ctx.fillStyle = '#B52828'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
       ctx.fillText(`🍅 ${h.mode}`, 24, y);
@@ -2737,6 +3054,10 @@ function downloadRecord() {
       ctx.fillText(`#${h.stamp}`, w - 24, y);
       ctx.textAlign = 'center';
     });
+    if (todayHistory.length === 0) {
+      ctx.fillStyle = '#C8B8B8'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('오늘 기록이 없어요', w/2, 136);
+    }
   }
 
   // 하단 서명
