@@ -1353,6 +1353,7 @@ let workMin = 25, breakMin = 5;
 let totalSec, elapsed = 0, isRunning = false, isBreak = false;
 let timerInterval = null;
 let stamps = 0;
+let stampsMap = {}; // { 'YYYY-MM-DD': N } 날짜별 도장 수
 let history = [];
 let todos = [];
 let playlist = [];
@@ -1469,7 +1470,13 @@ async function loadFromCloud() {
     });
     const data = await res.json();
     const d = data.record;
-    stamps = d.stamps || 0;
+    // stamps를 날짜별 맵으로 저장 (하위호환: 기존 숫자면 오늘 날짜로 마이그레이션)
+    if (d.stampsMap) {
+      stampsMap = d.stampsMap;
+    } else if (typeof d.stamps === 'number' && d.stamps > 0) {
+      stampsMap = { [getTodayStr()]: d.stamps };
+    }
+    stamps = stampsMap[getTodayStr()] || 0;
     history = d.history || [];
     todos = d.todos || [];
     playlist = d.playlist || [];
@@ -1492,7 +1499,7 @@ async function saveToCloud() {
     await fetch(`${JSONBIN_URL}/${currentBinId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ stamps, history, todos, playlist })
+      body: JSON.stringify({ stampsMap, stamps, history, todos, playlist })
     });
     showSyncStatus('✅ 저장됨');
     setTimeout(() => showSyncStatus(''), 2000);
@@ -1553,11 +1560,17 @@ function clearCacheAndReset() {
 }
 
 function resetAllData() {
-  if (!confirm('정말 모든 기록을 리셋할까? 🍅')) return;
-  stamps = 0; history = []; todos = []; growthLevel = 0;
-  buildStamps(); buildGarden(); renderHistory(); renderTodos(); renderCalendar();
+  if (!confirm('오늘 기록(도장, 히스토리)을 리셋할까? 다른 날 기록은 유지돼 🍅')) return;
+  const today = getTodayStr();
+  // 오늘 stamps만 초기화
+  stampsMap[today] = 0;
+  stamps = 0;
+  growthLevel = 0;
+  // 오늘 history만 제거
+  history = history.filter(h => h.date !== today);
+  buildStamps(); buildGarden(); renderHistory(); renderCalendar();
   saveToCloud();
-  showToast('🗑️ 기록이 리셋됐어!');
+  showToast('🗑️ 오늘 기록이 리셋됐어!');
 }
 
 // ===== INIT =====
@@ -1690,6 +1703,7 @@ function phaseComplete() {
   stopTimer();
   if (!isBreak) {
     stamps++;
+    stampsMap[getTodayStr()] = stamps;
     addHistory();
     buildStamps();
     growthLevel = Math.min(stamps, 9);
@@ -2131,7 +2145,8 @@ setInterval(() => {
   if (isRunning && !isBreak) buildGarden();
 }, 5000);
 
-// ===== 시계 =====
+// ===== 시계 + 자정 체크 =====
+let _lastDateStr = '';
 function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
@@ -2142,6 +2157,16 @@ function updateClock() {
   const days = ['일','월','화','수','목','금','토'];
   const dateEl = document.getElementById('clock-date');
   if (dateEl) dateEl.textContent = `${now.getFullYear()}. ${now.getMonth()+1}. ${now.getDate()}. (${days[now.getDay()]})`;
+
+  // 자정 지나면 오늘 stamps 새로 로드
+  const todayStr = getTodayStr();
+  if (_lastDateStr && _lastDateStr !== todayStr) {
+    stamps = stampsMap[todayStr] || 0;
+    growthLevel = stamps;
+    buildStamps(); buildGarden();
+    showToast('🌅 새로운 하루 시작! 오늘도 화이팅, 민아야!');
+  }
+  _lastDateStr = todayStr;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -2624,6 +2649,7 @@ function completeFreeTimer() {
   const dateStr = getTodayStr();
   const min = Math.floor(freeElapsed / 60);
   stamps++;
+  stampsMap[getTodayStr()] = stamps;
   history.unshift({ time: timeStr, date: dateStr, mode: `자유 ${min}분`, stamp: stamps });
   growthLevel = Math.min(stamps, 9);
   buildStamps(); buildGarden();
