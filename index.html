@@ -1477,12 +1477,13 @@ async function loadFromCloud() {
       stampsMap = { [getTodayStr()]: d.stamps };
     }
     stamps = stampsMap[getTodayStr()] || 0;
+    growthLevel = stamps;
     history = d.history || [];
     todos = d.todos || [];
     playlist = d.playlist || [];
-    growthLevel = stamps;
     buildStamps(); buildGarden();
-    renderHistory(); renderTodos(); renderPlaylist(); renderWeekly();
+    renderHistory(); renderTodos(); renderPlaylist(); renderWeekly(); renderCalendar();
+    updateStudyStats();
     showSyncStatus('✅ 동기화 완료');
     setTimeout(() => showSyncStatus(''), 2000);
   } catch(e) {
@@ -1578,6 +1579,13 @@ function init() {
   totalSec = workMin * 60;
   elapsed = 0;
   renderTimer();
+
+  // 날짜 바뀌었으면 오늘 stamps 새로 시작
+  const todayStr = getTodayStr();
+  stamps = stampsMap[todayStr] || 0;
+  growthLevel = stamps;
+  _lastDateStr = todayStr;
+
   buildStamps();
   buildGarden();
   initCalendar();
