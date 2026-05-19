@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>黒尾のポモドーロ 🏐</title>
+<title>POMODORO 🏐</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+Rounded+1c:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -930,8 +930,8 @@
 <div class="container">
   <!-- HEADER -->
   <div class="header">
-    <h1>黒尾のポモドーロ 🏐</h1>
-    <p class="sub">kuroo tetsurou ✦ 집중하자, 이길 때까지</p>
+    <h1>POMODORO 🏐</h1>
+    
   </div>
 
   <div class="main-grid">
@@ -939,20 +939,13 @@
     <div class="left-panel">
       <!-- Kuroo Volleyball Emoji Panel -->
       <div class="panel">
-        <div class="panel-title">🏐 MY BOY</div>
+        <div class="panel-title">🏐 FOR DAM</div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;">
-          <!-- Main big volleyball -->
           <div style="font-size:5rem;line-height:1;filter:drop-shadow(0 4px 10px rgba(224,58,58,0.3));animation:floatBall 3s ease-in-out infinite;">🏐</div>
-          <!-- Side pair -->
           <div style="display:flex;gap:18px;align-items:center;">
             <span style="font-size:2.2rem;animation:floatBall 3.4s ease-in-out infinite 0.3s;display:block;filter:drop-shadow(0 2px 6px rgba(224,58,58,0.2))">🏐</span>
-            <div style="text-align:center;">
-              <div style="font-family:'Noto Serif JP',serif;font-size:0.7rem;color:var(--mint-dark);font-weight:700;letter-spacing:0.1em;">黒尾 鉄朗</div>
-              <div style="font-size:0.58rem;color:var(--gray);margin-top:2px;">Nekoma #5</div>
-            </div>
             <span style="font-size:2.2rem;animation:floatBall 2.8s ease-in-out infinite 0.6s;display:block;filter:drop-shadow(0 2px 6px rgba(224,58,58,0.2))">🏐</span>
           </div>
-          <div style="font-size:0.65rem;color:var(--gray);text-align:center;letter-spacing:0.06em;margin-top:2px;">"이어라." 🐱</div>
         </div>
       </div>
 
@@ -1136,7 +1129,7 @@
   <div class="pin-modal-overlay" id="pin-modal">
     <div class="pin-modal">
       <div class="pin-emoji">🏐</div>
-      <h2>黒尾のポモドーロ</h2>
+      <h2>POMODORO</h2>
       <p class="pin-desc">숫자 4자리를 입력해줘!<br>같은 번호로 어느 기기든 동기화돼 😊</p>
       <input
         class="pin-input-field"
@@ -1164,7 +1157,7 @@
       </div>
       <!-- 도장 10개 완성 시 수고했어 도장 토글 -->
       <div id="paw-toggle-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:10px;padding:8px 10px;background:var(--mint-pale);border-radius:10px;border:1px solid rgba(224,58,58,0.2);">
-        <span style="font-size:0.68rem;color:var(--mint-dark);">🐾 수고했어 도장 표시</span>
+        <span style="font-size:0.68rem;color:var(--mint-dark);">🍅 참 잘했어요 도장 표시</span>
         <label style="position:relative;display:inline-block;width:36px;height:20px;cursor:pointer;">
           <input type="checkbox" id="paw-toggle" checked onchange="renderPreview()" style="opacity:0;width:0;height:0;">
           <span id="paw-toggle-slider" style="position:absolute;inset:0;background:#ccc;border-radius:20px;transition:0.2s;"></span>
@@ -1478,6 +1471,7 @@ async function loadFromCloud() {
     }
     stamps = stampsMap[getTodayStr()] || 0;
     growthLevel = stamps;
+    _lastDateStr = getTodayStr();
     history = d.history || [];
     todos = d.todos || [];
     playlist = d.playlist || [];
@@ -1717,9 +1711,7 @@ function phaseComplete() {
     growthLevel = Math.min(stamps, 9);
     buildGarden();
     saveToCloud();
-    // 큰 토스트 (10개 순환)
-    const msg = focusMessages[(focusMsgIndex++) % focusMessages.length];
-    showBigToast(msg);
+    showToast('🍅 집중 완료! 휴식 타임이야~');
     isBreak = true;
     totalSec = breakMin * 60;
     elapsed = 0;
@@ -1736,7 +1728,7 @@ function phaseComplete() {
     document.body.classList.remove('break-mode');
     document.getElementById('timer-label').textContent = '집중 시간 🍅';
     renderTimer();
-    showToast('💪 다시 힘내볼까, 캡틴?');
+    showToast('💪 다시 시작하자!');
   }
 }
 
@@ -1783,7 +1775,7 @@ function buildStamps() {
       const overlay = document.createElement('div');
       overlay.id = 'paw-stamp-overlay';
       overlay.style.cssText = `position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-10deg);opacity:0.85;pointer-events:none;animation:stampIn 0.5s cubic-bezier(.17,.67,.29,1.5);z-index:10;`;
-      overlay.innerHTML = `<div style="font-size:3.2rem;line-height:1;">🐾</div><div style="font-family:'Noto Serif JP',serif;font-size:0.72rem;color:#B52828;text-align:center;font-weight:700;margin-top:3px;letter-spacing:0.08em;">お疲れ様。</div>`;
+      overlay.innerHTML = `<div style="font-size:3.2rem;line-height:1;">🍅</div><div style="font-family:'M PLUS Rounded 1c',sans-serif;font-size:0.72rem;color:#B52828;text-align:center;font-weight:700;margin-top:3px;letter-spacing:0.08em;">참 잘했어요!</div>`;
       grid.appendChild(overlay);
     }
   }
@@ -2154,7 +2146,7 @@ setInterval(() => {
 }, 5000);
 
 // ===== 시계 + 자정 체크 =====
-let _lastDateStr = '';
+let _lastDateStr = getTodayStr(); // 처음부터 오늘 날짜로 초기화
 function updateClock() {
   const now = new Date();
   const h = now.getHours().toString().padStart(2,'0');
@@ -2168,13 +2160,13 @@ function updateClock() {
 
   // 자정 지나면 오늘 stamps 새로 로드
   const todayStr = getTodayStr();
-  if (_lastDateStr && _lastDateStr !== todayStr) {
+  if (_lastDateStr !== todayStr) {
+    _lastDateStr = todayStr;
     stamps = stampsMap[todayStr] || 0;
     growthLevel = stamps;
     buildStamps(); buildGarden();
     showToast('🌅 새로운 하루 시작! 오늘도 화이팅, 민아야!');
   }
-  _lastDateStr = todayStr;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -2309,9 +2301,21 @@ function renderHistory() {
 
 function deleteHistory(index) {
   history.splice(index, 1);
+  // 오늘 기록 삭제 시 도장 수 재계산
+  recalcTodayStamps();
   renderHistory();
   renderCalendar();
   saveToCloud();
+}
+
+function recalcTodayStamps() {
+  const today = getTodayStr();
+  const todayCount = history.filter(h => h.date === today).length;
+  stamps = todayCount;
+  stampsMap[today] = todayCount;
+  growthLevel = stamps;
+  buildStamps();
+  buildGarden();
 }
 
 // ===== 달력 =====
@@ -2954,7 +2958,7 @@ function renderPreview() {
       <div class="record-stamps-row">${row1}</div>
       <div class="record-stamps-row" style="margin-top:4px">${row2}</div>
       <div style="text-align:center;font-size:0.68rem;color:var(--mint-dark);font-weight:700;margin-top:6px;">${stamps} / 10 완료</div>
-      ${showPaw ? `<div style="text-align:center;font-size:2rem;margin-top:6px;opacity:0.8;">🐾<div style="font-family:'Noto Serif JP',serif;font-size:0.68rem;color:#B52828;font-weight:700;letter-spacing:0.08em;">お疲れ様。</div></div>` : ''}
+      ${showPaw ? `<div style="text-align:center;font-size:2rem;margin-top:6px;opacity:0.8;">🍅<div style="font-family:'M PLUS Rounded 1c',sans-serif;font-size:0.68rem;color:#B52828;font-weight:700;">참 잘했어요!</div></div>` : ''}
       <div class="record-footer">黒尾のポモドーロ ✦ いいら</div>`;
   } else {
     const rows = history.slice(0, 6).map(h =>
@@ -3044,10 +3048,10 @@ function downloadRecord() {
       ctx.rotate(-0.2);
       ctx.font = '52px serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🐾', 0, 18);
-      ctx.font = 'bold 11px "Noto Serif JP", serif';
+      ctx.fillText('🍅', 0, 18);
+      ctx.font = 'bold 11px sans-serif';
       ctx.fillStyle = '#B52828';
-      ctx.fillText('お疲れ様。', 0, 38);
+      ctx.fillText('참 잘했어요!', 0, 38);
       ctx.restore();
     }
   } else {
